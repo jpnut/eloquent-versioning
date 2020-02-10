@@ -548,6 +548,69 @@ class VersionableTest extends TestCase
     /**
      * @test
      */
+    public function it_will_only_change_version_if_attributes_are_dirty()
+    {
+        $model = factory(Dummy::class)->create(
+            [
+                'city' => 'Foo',
+            ]
+        );
+
+        $model->update(
+            [
+                'city' => 'Bar',
+            ]
+        );
+
+        $model->update(
+            [
+                'city' => 'Foo',
+            ]
+        );
+
+        $model->changeVersion(1);
+
+        $this->assertEquals(3, $model->version);
+        $this->assertEquals('Foo', $model->city);
+
+        $this->assertDatabaseHas(
+            'dummies', [
+                'id'      => 1,
+                'version' => 3,
+            ]
+        );
+
+        $this->assertDatabaseHas(
+            'dummy_versions',
+            [
+                'parent_id' => 1,
+                'version'   => 1,
+                'city'      => 'Foo',
+            ]
+        );
+
+        $this->assertDatabaseHas(
+            'dummy_versions',
+            [
+                'parent_id' => 1,
+                'version'   => 2,
+                'city'      => 'Bar',
+            ]
+        );
+
+        $this->assertDatabaseHas(
+            'dummy_versions',
+            [
+                'parent_id' => 1,
+                'version'   => 3,
+                'city'      => 'Foo',
+            ]
+        );
+    }
+
+    /**
+     * @test
+     */
     public function it_can_query_versioned_attributes()
     {
         factory(Dummy::class)->create(

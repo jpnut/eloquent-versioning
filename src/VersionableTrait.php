@@ -465,17 +465,17 @@ trait VersionableTrait
      */
     public function changeVersion($version)
     {
-        $this->setVersionKey($this->getVersionKey() + 1);
+        if ($this->wasRecentlyCreated) {
+            $this->refresh();
+        }
 
-        $this->save();
-
-        $this->insertVersion(
-            $attributes = $this->getVersionAttributes(
+        $this->fill(
+            $this->getVersionAttributes(
                 $this->version($version)->getAttributes()
             )
         );
 
-        $this->fill($attributes);
+        $this->save();
 
         return $this;
     }
