@@ -1,32 +1,48 @@
 <?php
 
-namespace ProAI\Versioning\Tests;
+namespace JPNut\Versioning\Tests;
 
-use Orchestra\Database\ConsoleServiceProvider;
-use Orchestra\Testbench\TestCase as BaseTestCase;
+use Carbon\Carbon;
+use Orchestra\Testbench\TestCase as Orchestra;
 
-class TestCase extends BaseTestCase
+abstract class TestCase extends Orchestra
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function getEnvironmentSetUp($app)
+    public function setUp(): void
     {
-        // Database
-        $app['config']->set('database.default', 'testing');
-        $app['config']->set('database.connections.testing', [
-            'driver'   => 'sqlite',
-            'database' => ':memory:',
-            'prefix'   => '',
-        ]);
+        parent::setUp();
+
+        $this->setUpDatabase();
+
+        Carbon::setTestNow();
     }
 
     /**
-     * {@inheritdoc}
+     * @param \Illuminate\Foundation\Application $app
+     *
+     * @return array
      */
-    public function setUp()
+    protected function getPackageProviders($app)
     {
-        parent::setUp();
+        return [
+
+        ];
+    }
+
+    /**
+     * @param \Illuminate\Foundation\Application $app
+     */
+    protected function getEnvironmentSetUp($app)
+    {
+        $app['config']->set('database.default', 'sqlite');
+        $app['config']->set('database.connections.sqlite', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+        ]);
+    }
+
+    protected function setUpDatabase()
+    {
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
         $this->withFactories(__DIR__.'/database/factories');
     }

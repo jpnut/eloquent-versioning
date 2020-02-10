@@ -1,12 +1,12 @@
 <?php
 
-namespace ProAI\Versioning;
+namespace JPNut\Versioning;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Query\JoinClause;
-use Carbon\Carbon;
 
 class VersioningScope implements Scope
 {
@@ -15,44 +15,18 @@ class VersioningScope implements Scope
      *
      * @var array
      */
-    protected $extensions = ['Version', 'AllVersions', 'Moment'];
+    protected array $extensions = ['AtVersion', 'AtTime'];
 
     /**
      * Apply the scope to a given Eloquent query builder.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable  $model
      * @return void
      */
     public function apply(Builder $builder, Model $model)
     {
-        if (!$this->hasVersionJoin($builder, $model->getVersionTable())) {
-            $builder->join($model->getVersionTable(), function($join) use ($model) {
-                $join->on($model->getQualifiedKeyName(), '=', $model->getQualifiedVersionKeyName());
-                $join->on($model->getQualifiedVersionColumn(), '=', $model->getQualifiedLatestVersionColumn());
-            });
-        }
-
-        $this->extend($builder);
-    }
-
-    /**
-     * Remove the scope from the given Eloquent query builder.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return void
-     */
-    public function remove(Builder $builder, Model $model)
-    {
-        $table = $model->getVersionTable();
-
-        $query = $builder->getQuery();
-
-        $query->joins = collect($query->joins)->reject(function($join) use ($table)
-        {
-            return $this->isVersionJoinConstraint($join, $table);
-        })->values()->all();
+        //
     }
 
     /**
@@ -63,98 +37,112 @@ class VersioningScope implements Scope
      */
     public function extend(Builder $builder)
     {
-        foreach ($this->extensions as $extension)
-        {
+        foreach ($this->extensions as $extension) {
             $this->{"add{$extension}"}($builder);
         }
     }
 
     /**
-     * Add the version extension to the builder.
-     *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @return void
      */
-    protected function addVersion(Builder $builder)
+    protected function addAtVersion(Builder $builder)
     {
-        $builder->macro('version', function(Builder $builder, $version) {
-            $model = $builder->getModel();
+        $builder->macro(
+            'atVersion',
+            function (Builder $builder, $version) {
+                /** @var \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable $model */
+                $model = $builder->getModel();
 
-            $this->remove($builder, $builder->getModel());
+                $this->remove($builder, $builder->getModel());
 
-            $builder->join($model->getVersionTable(), function($join) use ($model, $version) {
-                $join->on($model->getQualifiedKeyName(), '=', $model->getQualifiedVersionKeyName());
-                $join->where($model->getQualifiedVersionColumn(), '=', $version);
-            });
+                $builder
+                    ->join(
+                        $model->getVersionTable(),
+                        function ($join) use ($model, $version) {
+                            $join->on(
+                                $model->getQualifiedKeyName(), '=', $model->getQualifiedVersionTableForeignKeyName()
+                            )
+                                ->where($model->getQualifiedVersionTableKeyName(), '=', $version);
+                        }
+                    )
+                    ->select(
+                        $model->defaultVersionSelect()
+                    );
 
-            return $builder;
-        });
+                return $builder;
+            }
+        );
     }
 
     /**
-     * Add the allVersions extension to the builder.
+     * Remove the scope from the given Eloquent query builder.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable  $model
      * @return void
      */
-    protected function addAllVersions(Builder $builder)
+    public function remove(Builder $builder, Model $model)
     {
-        $builder->macro('allVersions', function(Builder $builder) {
-            $model = $builder->getModel();
+        $table = $model->getVersionTable();
 
-            $this->remove($builder, $builder->getModel());
+        $query = $builder->getQuery();
 
-            $builder->join($model->getVersionTable(), function($join) use ($model) {
-                $join->on($model->getQualifiedKeyName(), '=', $model->getQualifiedVersionKeyName());
-            });
-
-            return $builder;
-        });
-    }
-
-    /**
-     * Add the moment extension to the builder.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @return void
-     */
-    protected function addMoment(Builder $builder)
-    {
-        $builder->macro('moment', function(Builder $builder, Carbon $moment) {
-            $model = $builder->getModel();
-
-            $this->remove($builder, $builder->getModel());
-
-            $builder->join($model->getVersionTable(), function($join) use ($model, $moment) {
-                $join->on($model->getQualifiedKeyName(), '=', $model->getQualifiedVersionKeyName());
-                $join->where('updated_at', '<=', $moment)->orderBy('updated_at', 'desc')->limit(1);
-            })->orderBy('updated_at', 'desc')->limit(1);
-
-            return $builder;
-        });
+        $query->joins = collect($query->joins)->reject(
+            function ($join) use ($table) {
+                return $this->isVersionJoinConstraint($join, $table);
+            }
+        )->values()->all();
     }
 
     /**
      * Determine if the given join clause is a version constraint.
      *
-     * @param  \Illuminate\Database\Query\JoinClause   $join
-     * @param  string  $column
+     * @param  \Illuminate\Database\Query\JoinClause  $join
+     * @param  string  $table
      * @return bool
      */
-    protected function isVersionJoinConstraint(JoinClause $join, $table)
+    protected function isVersionJoinConstraint(JoinClause $join, string $table)
     {
-        return $join->type == 'inner' && $join->table == $table;
+        return $join->type === 'inner' && $join->table === $table;
     }
 
     /**
-     * Determine if the given builder contains a join with the given table
-     *
-     * @param Builder $builder
-     * @param string $table
-     * @return bool
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @return void
      */
-    protected function hasVersionJoin(Builder $builder, string $table)
+    protected function addAtTime(Builder $builder)
     {
-        return collect($builder->getQuery()->joins)->pluck('table')->contains($table);
+        $builder->macro(
+            'atTime',
+            function (Builder $builder, Carbon $moment) {
+                /** @var \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable $model */
+                $model = $builder->getModel();
+
+                $this->remove($builder, $builder->getModel());
+
+                $createdAt = $model->getQualifiedVersionTableCreatedAtName();
+
+                $builder
+                    ->join(
+                        $model->getVersionTable(),
+                        function ($join) use ($model, $moment, $createdAt) {
+                            $join->on(
+                                $model->getQualifiedKeyName(), '=', $model->getQualifiedVersionTableForeignKeyName()
+                            )
+                                ->where($createdAt, '<=', $moment)
+                                ->orderBy($createdAt, 'desc')
+                                ->limit(1);
+                        }
+                    )
+                    ->orderBy($createdAt, 'desc')
+                    ->limit(1)
+                    ->select(
+                        $model->defaultVersionSelect()
+                    );
+
+                return $builder;
+            }
+        );
     }
 }

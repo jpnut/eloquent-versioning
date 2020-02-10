@@ -1,4 +1,8 @@
-.idea
-/vendor
+/.idea
 /coverage
+/vendor
+
+composer.phar
 composer.lock
+
+.phpunit.result.cache

@@ -1,147 +1,177 @@
-# Eloquent Versioning
+# Versions for Eloquent models
 
-[![Latest Stable Version](https://poser.pugx.org/proai/eloquent-versioning/v/stable)](https://packagist.org/packages/proai/eloquent-versioning) [![Total Downloads](https://poser.pugx.org/proai/eloquent-versioning/downloads)](https://packagist.org/packages/proai/eloquent-versioning) [![Latest Unstable Version](https://poser.pugx.org/proai/eloquent-versioning/v/unstable)](https://packagist.org/packages/proai/eloquent-versioning) [![License](https://poser.pugx.org/proai/eloquent-versioning/license)](https://packagist.org/packages/proai/eloquent-versioning)
+This package provides a trait that adds versions to an Eloquent model (forked from [proai/eloquent-versioning](https://github.com/ProAI/eloquent-versioning)).
 
-This is an extension for the Eloquent ORM to support versioning. You can specify attributes as versioned. If an attribute is specified as versioned the value will be saved in a separate version table on each update. It is possible to use timestamps and soft deletes with this feature.
+New versions are created whenever a model is updated. Versions are stored in a separate table for each model (e.g. `user_versions`). 
+
+The package allows for a mixture of versioned and non-versioned attributes.
+
+By default, queries are scoped to merge records in the parent table with the latest version. Additional scopes exist to merge records at a particular version or point in time.
 
 ## Installation
 
-Eloquent Versioning is distributed as a composer package. So you first have to add the package to your `composer.json` file:
+This package can be installed through Composer.
 
-```
-"proai/eloquent-versioning": "~1.0"
-```
-
-Then you have to run `composer update` to install the package.
-
-## Example
-
-We assume that we want a simple user model. While the username should be fixed, the email and city should be versionable. Also timestamps and soft deletes should be versioned. The migrations would look like the following:
-
-```php
-...
-
-Schema::create('users', function(Blueprint $table) {
-    $table->increments('id');
-    $table->integer('latest_version');
-    $table->string('username');
-    $table->timestamp('created_at');
-});
-
-Schema::create('users_version', function(Blueprint $table) {
-    $table->integer('ref_id')->primary();
-    $table->integer('version')->primary();
-    $table->string('email');
-    $table->string('city');
-    $table->timestamp('updated_at');
-    $table->timestamp('deleted_at');
-});
-
-...
-```
-
-The referring Eloquent model should include the code below:
-
-```php
-<?php
-
-namespace Acme\Models;
-
-use Illuminate\Database\Eloquent\Model;
-use ProAI\Versioning\Versionable;
-use ProAI\Versioning\SoftDeletes;
-
-class User extends Model
-{
-    use Versionable, SoftDeletes;
-    
-    public $timestamps = true;
-    
-    public $versioned = ['email', 'city', 'updated_at', 'deleted_at'];
-    
-    ...
-}
+```shell script
+composer require jpnut/eloquent-versionable
 ```
 
 ## Usage
 
-### Database Tables
+To add versions to your model you must:
+1. Implement the `JPNut\Versioning\Versionable` interface.
+2. Use the `JPNut\Versioning\VersionableTrait` trait.
+3. Add the `getVersionableOptions` method to your model. This method must return an instance of `JPNut\Versioning\VersionOptions`. You should define which attributes you would like to version by calling `setVersionableAttributes` and passing an array of attributes:
 
-You need to add the following columns to your main model table:
+    ```php
+    ...
+   
+    /**
+     * @return \JPNut\Versioning\VersionOptions
+     */
+    public function getVersionableOptions(): VersionOptions
+    {
+        return VersionOptions::create()
+            ->setVersionableAttributes(['email', 'city']);
+    }
+   
+    ...
+    ```
+4. Add the `version` column to the table of the model which you wish to version. This keeps track of the current version.
 
-* `latest_version` (integer).
+    ```php
+    ...
+   
+    Schema::create('users', function (Blueprint $table) {
+        $table->increments('id');
+        $table->integer('version')->unsigned()->nullable();
+        $table->string('name');
+        $table->timestamps();
+        $table->softDeletes();
+    });
+   
+    ...
+    ```
+5. Create a table to contain the versions. This table should contain a reference to the parent model (`parent_id`), the version number `version`, all versionable attributes (`email`, `city`), and the `created_at` timestamp.
 
-Furthermore you need a version table. The name of the version table is identical with the name of the main model table (e. g. for a model table `users` the name would be `users_version`). This table must contain the following columns:
+    ```php
+    ...
 
-* `ref_` followed by the name of the model's primary key (if the primary key is `id`, the column name will be `ref_id`)
-* `version` (integer)
+    Schema::create('user_versions', function (Blueprint $table) {
+        $table->integer('parent_id')->unsigned();
+        $table->integer('version')->unsigned();
+        $table->string('email');
+        $table->string('city');
+        $table->timestamp('created_at');
 
-### Eloquent Models
+        $table->primary(['parent_id', 'version']);
+    });
 
-You have to define a `$versioned` array in your model that contains all versioned columns.
+    ...
+    ```
 
-### Database Queries
 
-#### Query the database
+It is assumed that the version table name takes the form `{entity}_versions` where `entity` is the singular form of the entity noun (e.g. `users` and `user_versions`). It is possible to override this and all column names by calling the relevant method on the options object (the following shows the default settings). 
+    
+```php
+...
+   
+/**
+ * @return \JPNut\Versioning\VersionOptions
+ */
+public function getVersionableOptions(): VersionOptions
+{
+    return VersionOptions::create()
+        ->saveVersionKeyTo('version')
+        ->useVersionTable('user_versions')
+        ->saveVersionTableKeyTo('version')
+        ->versionTableForeignKeyName('parent_id')
+        ->versionTableCreatedAtName('created_at');
+}
 
-By default the query builder will fetch the latest version (e. g. `User::find(1);` will return the latest version of user #1). If you want a specific version or all versions, you can use the following:
+...
+```
 
-* `version(VERSION_NO)` returns a specific version<br>Example: `User::version(2)->find(1)` will return version #2 of user #1
-
-* `allVersions()` returns all versions of the queried items<br>Example: `User::allVersions()->get()` will return all versions of all users
-
-* `moment(Carbon)` returns a specific version, closest but lower than the input date<br>Example: `User::moment(Carbon::now()->subWeek()->find(1)` will return the version at that point in time.
-
-#### Create, update and delete records
-
-All these operations can be performed normally. The package will automatically generate a version 1 on create, the next version on update and will remove all versions on delete.
-
-### Timestamps
-
-You can use timestamps in two ways. For both you have to set `$timestamps = true;`.
-
-* Normal timestamps<br>The main table must include a `created_at` and a `updated_at` column. The `updated_at` column will be overriden on every update. So this is the normal use of Eloquent timestamps.
-
-* Versioned timestamps<br>If you add `updated_at` to your `$versioned` array, you need a `created_at` column in the main table and a `updated_at` column in the version table (see example). On update the `updated_at` value of the new version will be set to the current time. The `updated_at` values of previous versions will not be updated. This way you can track the dates of all updates.
-
-### Soft Deletes
-
-If you use the `Versionable` trait with soft deletes, you have to use the `ProAI\Versioning\SoftDeletes` trait **from this package** instead of the Eloquent soft deletes trait.
-
-* Normal soft deletes<br>Just use a `deleted_at` column in the main table. Then on delete or on restore the `deleted_at` value will be updated.
-
-* Versioned soft deletes<br>If you create a `deleted_at` column in the version table and add `deleted_at` to the `$versioned` array, then on delete or on restore the `deleted_at` value of the new version will get updated (see example). The `deleted_at` values of previous versions will not be updated. This way you can track all soft deletes and restores.
-
-## Custom Query Builder
-
-If you want to use a custom versioning query builder, you will have to build your own versioning trait, but that's pretty easy:
+### Example
 
 ```php
-<?php
+use Illuminate\Database\Eloquent\Model;
+use JPNut\Versioning\Versionable;
+use JPNut\Versioning\VersionableTrait;
+use JPNut\Versioning\VersionOptions;
 
-namespace Acme\Versioning;
-
-trait Versionable
+class YourEloquentModel extends Model implements Versionable
 {
-    use \ProAI\Versioning\BaseVersionable;
+    use VersionableTrait;
     
-    public function newEloquentBuilder($query)
+    /**
+     * @return VersionOptions
+     */
+    public function getVersionableOptions(): VersionOptions
     {
-        return new MyVersioningBuilder($query);
+        return VersionOptions::create()
+            ->setVersionableAttributes(['email', 'city']);
     }
+
+    ...
 }
 ```
 
-Obviously you have to replace `MyVersioningBuilder` by the classname of your custom builder. In addition you have to make sure that your custom builder implements the functionality of the versioning query builder. There are some strategies to do this:
+You can retrieve the model at a specific version by using the `atVersion` scope
 
-* Extend the versioning query builder `ProAI\Versioning\Builder`
-* Use the versioning builder trait `ProAI\Versioning\BuilderTrait`
-* Copy and paste the code from the versioning query builder to your custom builder
+```php
+Model::atVersion(1)->find(1);
+```
 
-## Support
+You can retrieve the model at a specific point in time by using the `atTime` scope
 
-Bugs and feature requests are tracked on [GitHub](https://github.com/proai/eloquent-versioning/issues).
+```php
+Model::atTime(now()->subDay())->find(1);
+```
+
+Note that this will attempt to find the last version created before the time supplied. If there are no such versions, the method will return `null`.
+
+You can disable the global scope by using the `withoutVersion` scope
+
+```php
+Model::withoutVersion()->find(1);
+```
+
+You can obtain all versions in the form of a relationship by calling the `versions` property (or method) on a model instance
+
+```php
+$model->versions;
+```
+
+Note that by default a generic `Version` model is used. You can change this model by overwriting the `versions` method and returning your own `HasMany` relationship. 
+
+
+You can revert to a previous version by calling the `changeVersion()` method with the desired version as an argument.
+
+```php
+$model->changeVersion(1);
+```
+
+Note that this creates a new version with the same versionable attribute values as the version specified (rather than changing the value of the `version` column in the parent table).
+
+## Tests
+
+The package contains some integration tests, set up with Orchestra. The tests can be run via phpunit.
+
+```bash
+vendor/bin/phpunit
+```
+
+## Contributing
+
+Create a Pull Request!
+
+## Alternatives
+- [mpociot/versionable](https://github.com/mpociot/versionable)
+- [overtrue/laravel-versionable](https://github.com/overtrue/laravel-versionable)
+- [proai/eloquent-versioning](https://github.com/ProAI/eloquent-versioning)
+- [venturecraft/revisionable](https://github.com/venturecraft/revisionable)
 
 ## License
 
-This package is released under the [MIT License](LICENSE).
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
