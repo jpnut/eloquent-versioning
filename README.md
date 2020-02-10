@@ -1,5 +1,10 @@
 # Versions for Eloquent models
 
+[![Latest Version](https://img.shields.io/github/v/release/jpnut/eloquent-versioning.svg?style=flat-square)](https://github.com/jpnut/eloquent-versioning/releases)
+[![Quality Score](https://img.shields.io/scrutinizer/quality/g/jpnut/eloquent-versioning.svg?style=flat-square)](https://scrutinizer-ci.com/g/jpnut/eloquent-versioning/)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+[![StyleCI](https://styleci.io/repos/238689246/shield?branch=master)](https://styleci.io/repos/238689246)
+
 This package provides a trait that adds versions to an Eloquent model (forked from [proai/eloquent-versioning](https://github.com/ProAI/eloquent-versioning)).
 
 New versions are created whenever a model is updated. Versions are stored in a separate table for each model (e.g. `user_versions`). 
