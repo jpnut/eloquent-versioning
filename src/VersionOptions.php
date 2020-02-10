@@ -35,7 +35,7 @@ class VersionOptions
     public array $versionableAttributes;
 
     /**
-     * @param  array  $options
+     * @param array $options
      */
     public function __construct(array $options = [])
     {
@@ -48,7 +48,8 @@ class VersionOptions
     }
 
     /**
-     * @param  array  $options
+     * @param array $options
+     *
      * @return static
      */
     public static function create(array $options = []): self
@@ -57,7 +58,8 @@ class VersionOptions
     }
 
     /**
-     * @param  string  $fieldName
+     * @param string $fieldName
+     *
      * @return self
      */
     public function saveVersionKeyTo(string $fieldName): self
@@ -68,7 +70,8 @@ class VersionOptions
     }
 
     /**
-     * @param  string  $table
+     * @param string $table
+     *
      * @return self
      */
     public function useVersionTable(string $table): self
@@ -79,7 +82,8 @@ class VersionOptions
     }
 
     /**
-     * @param  string  $fieldName
+     * @param string $fieldName
+     *
      * @return self
      */
     public function saveVersionTableKeyTo(string $fieldName): self
@@ -90,7 +94,8 @@ class VersionOptions
     }
 
     /**
-     * @param  string  $fieldName
+     * @param string $fieldName
+     *
      * @return self
      */
     public function saveVersionTableForeignKeyTo(string $fieldName): self
@@ -101,7 +106,8 @@ class VersionOptions
     }
 
     /**
-     * @param  string|null  $fieldName
+     * @param string|null $fieldName
+     *
      * @return self
      */
     public function saveVersionTableCreatedAtTo(?string $fieldName): self
@@ -112,7 +118,8 @@ class VersionOptions
     }
 
     /**
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return self
      */
     public function setVersionableAttributes(array $attributes): self

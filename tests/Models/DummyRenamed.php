@@ -20,7 +20,7 @@ class DummyRenamed extends Model implements Versionable
      */
     public function getVersionableOptions(): VersionOptions
     {
-        return (new VersionOptions)
+        return (new VersionOptions())
             ->saveRecordKeyTo('record')
             ->savePreviousKeyTo('previous_version')
             ->saveVersionTo('version_number')

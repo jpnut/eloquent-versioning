@@ -13,6 +13,6 @@ $factory->define(Dummy::class, function (Faker $faker) {
     return [
         'email' => $faker->unique()->safeEmail,
         'name'  => $faker->userName,
-        'city'  => $faker->city
+        'city'  => $faker->city,
     ];
 });

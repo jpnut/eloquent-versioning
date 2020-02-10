@@ -2,8 +2,6 @@
 
 namespace JPNut\Versioning;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
 interface Versionable
 {
     /**
@@ -32,7 +30,8 @@ interface Versionable
     public function getVersionKey(): int;
 
     /**
-     * @param  int  $version
+     * @param int $version
+     *
      * @return mixed
      */
     public function setVersionKey(int $version);

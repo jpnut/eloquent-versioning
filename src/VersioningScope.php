@@ -20,8 +20,9 @@ class VersioningScope implements Scope
     /**
      * Apply the scope to a given Eloquent query builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable  $model
+     * @param \Illuminate\Database\Eloquent\Builder                             $builder
+     * @param \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable $model
+     *
      * @return void
      */
     public function apply(Builder $builder, Model $model)
@@ -32,7 +33,8 @@ class VersioningScope implements Scope
     /**
      * Extend the query builder with the needed functions.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     *
      * @return void
      */
     public function extend(Builder $builder)
@@ -43,7 +45,8 @@ class VersioningScope implements Scope
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     *
      * @return void
      */
     protected function addAtVersion(Builder $builder)
@@ -78,8 +81,9 @@ class VersioningScope implements Scope
     /**
      * Remove the scope from the given Eloquent query builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable  $model
+     * @param \Illuminate\Database\Eloquent\Builder                             $builder
+     * @param \Illuminate\Database\Eloquent\Model|\JPNut\Versioning\Versionable $model
+     *
      * @return void
      */
     public function remove(Builder $builder, Model $model)
@@ -98,8 +102,9 @@ class VersioningScope implements Scope
     /**
      * Determine if the given join clause is a version constraint.
      *
-     * @param  \Illuminate\Database\Query\JoinClause  $join
-     * @param  string  $table
+     * @param \Illuminate\Database\Query\JoinClause $join
+     * @param string                                $table
+     *
      * @return bool
      */
     protected function isVersionJoinConstraint(JoinClause $join, string $table)
@@ -108,7 +113,8 @@ class VersioningScope implements Scope
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     *
      * @return void
      */
     protected function addAtTime(Builder $builder)
