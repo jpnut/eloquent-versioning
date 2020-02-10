@@ -14,7 +14,7 @@ trait VersionableTrait
      */
     public static function bootVersionableTrait()
     {
-        static::addGlobalScope(new VersioningScope);
+        static::addGlobalScope(new VersioningScope());
     }
 
     /**
@@ -56,10 +56,11 @@ trait VersionableTrait
     }
 
     /**
-     * Determine if the given builder contains a join with the given table
+     * Determine if the given builder contains a join with the given table.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  string  $table
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @param string                                $table
+     *
      * @return bool
      */
     protected function hasVersionJoin(Builder $builder, string $table)
@@ -70,7 +71,8 @@ trait VersionableTrait
     /**
      * Perform a model insert operation.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     *
      * @return bool
      */
     protected function performInsert(Builder $query)
@@ -132,7 +134,8 @@ trait VersionableTrait
     /**
      * Perform a model update operation.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     *
      * @return bool
      */
     protected function performUpdate(Builder $query)
@@ -197,9 +200,9 @@ trait VersionableTrait
     /**
      * Delete the model from the database.
      *
-     * @return bool|null
-     *
      * @throws \Exception
+     *
+     * @return bool|null
      */
     public function delete()
     {
@@ -240,7 +243,8 @@ trait VersionableTrait
     }
 
     /**
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return bool
      */
     protected function shouldCreateNewVersion(array $attributes): bool
@@ -249,7 +253,8 @@ trait VersionableTrait
     }
 
     /**
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return mixed
      */
     protected function insertVersion(array $attributes)
@@ -270,7 +275,8 @@ trait VersionableTrait
     }
 
     /**
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return array
      */
     protected function getVersionAttributes(array $attributes)
@@ -291,8 +297,9 @@ trait VersionableTrait
     /**
      * Check if key is in versioned keys.
      *
-     * @param  string  $key
-     * @param  array  $versionedKeys
+     * @param string $key
+     * @param array  $versionedKeys
+     *
      * @return string|null
      */
     protected function isVersionedKey($key, array $versionedKeys)
@@ -335,7 +342,8 @@ trait VersionableTrait
     }
 
     /**
-     * @param  int  $version
+     * @param int $version
+     *
      * @return mixed
      */
     public function setVersionKey(int $version)
@@ -435,7 +443,8 @@ trait VersionableTrait
     }
 
     /**
-     * @param  mixed  $version
+     * @param mixed $version
+     *
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function version($version)
@@ -451,6 +460,7 @@ trait VersionableTrait
 
     /**
      * @param  $version
+     *
      * @return mixed
      */
     public function changeVersion($version)

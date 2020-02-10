@@ -16,7 +16,7 @@ class VersionableTest extends TestCase
             [
                 'name'  => 'Foo',
                 'email' => 'foo@example.com',
-                'city'  => 'Foo City'
+                'city'  => 'Foo City',
             ]
         );
 
@@ -50,7 +50,7 @@ class VersionableTest extends TestCase
             [
                 'name'  => 'Foo',
                 'email' => 'foo@example.com',
-                'city'  => 'Foo City'
+                'city'  => 'Foo City',
             ]
         );
 
@@ -61,7 +61,7 @@ class VersionableTest extends TestCase
         $dummy->update(
             [
                 'name'  => 'Bar',
-                'email' => 'bar@example.com'
+                'email' => 'bar@example.com',
             ]
         );
 
@@ -106,7 +106,7 @@ class VersionableTest extends TestCase
             [
                 'name'  => 'Foo',
                 'email' => 'foo@example.com',
-                'city'  => 'Foo City'
+                'city'  => 'Foo City',
             ]
         );
 
@@ -153,7 +153,7 @@ class VersionableTest extends TestCase
             [
                 'name'  => 'Foo',
                 'email' => 'foo@example.com',
-                'city'  => 'Foo City'
+                'city'  => 'Foo City',
             ]
         );
 
@@ -166,7 +166,7 @@ class VersionableTest extends TestCase
     /** @test */
     public function it_can_soft_delete_and_keep_all_versions()
     {
-        $model = new class extends Dummy {
+        $model = new class() extends Dummy {
             use SoftDeletes;
         };
 
@@ -174,7 +174,7 @@ class VersionableTest extends TestCase
             [
                 'name'  => 'Foo',
                 'email' => 'foo@example.com',
-                'city'  => 'Foo City'
+                'city'  => 'Foo City',
             ]
         );
 
@@ -210,7 +210,7 @@ class VersionableTest extends TestCase
     /** @test */
     public function it_can_force_delete_and_remove_all_versions()
     {
-        $model = new class extends Dummy {
+        $model = new class() extends Dummy {
             use SoftDeletes;
         };
 
@@ -218,7 +218,7 @@ class VersionableTest extends TestCase
             [
                 'name'  => 'Foo',
                 'email' => 'foo@example.com',
-                'city'  => 'Foo City'
+                'city'  => 'Foo City',
             ]
         );
 
@@ -257,7 +257,7 @@ class VersionableTest extends TestCase
             ->addSelect(
                 [
                     'dummies.id', 'dummies.version', 'dummies.name', 'dummy_versions.email', 'dummy_versions.city',
-                    'dummies.created_at', 'dummies.updated_at'
+                    'dummies.created_at', 'dummies.updated_at',
                 ]
             )
             ->first();
@@ -274,7 +274,7 @@ class VersionableTest extends TestCase
     {
         $model = factory(Dummy::class)->create(
             [
-                'city' => 'Foo'
+                'city' => 'Foo',
             ]
         );
 
@@ -303,7 +303,7 @@ class VersionableTest extends TestCase
     {
         $model = factory(Dummy::class)->create(
             [
-                'city' => 'Foo'
+                'city' => 'Foo',
             ]
         );
 
@@ -321,7 +321,7 @@ class VersionableTest extends TestCase
 
         $model->update(
             [
-                'city' => 'Baz'
+                'city' => 'Baz',
             ]
         );
 
@@ -352,7 +352,7 @@ class VersionableTest extends TestCase
     {
         $model = factory(Dummy::class)->create(
             [
-                'city' => 'Foo'
+                'city' => 'Foo',
             ]
         );
 
@@ -364,7 +364,7 @@ class VersionableTest extends TestCase
 
         $model->update(
             [
-                'city' => 'Baz'
+                'city' => 'Baz',
             ]
         );
 
@@ -382,7 +382,7 @@ class VersionableTest extends TestCase
     {
         $model = factory(Dummy::class)->create(
             [
-                'city' => 'Foo'
+                'city' => 'Foo',
             ]
         );
 
@@ -394,7 +394,7 @@ class VersionableTest extends TestCase
 
         $model->update(
             [
-                'city' => 'Baz'
+                'city' => 'Baz',
             ]
         );
 
@@ -430,7 +430,7 @@ class VersionableTest extends TestCase
 
         $model->update(
             [
-                'city' => 'Baz'
+                'city' => 'Baz',
             ]
         );
 
@@ -467,7 +467,7 @@ class VersionableTest extends TestCase
 
         $model->update(
             [
-                'city' => 'Bar'
+                'city' => 'Bar',
             ]
         );
 
@@ -501,7 +501,7 @@ class VersionableTest extends TestCase
 
         $model->update(
             [
-                'city' => 'Bar'
+                'city' => 'Bar',
             ]
         );
 
@@ -511,9 +511,9 @@ class VersionableTest extends TestCase
 
         $this->assertDatabaseHas(
             'dummies', [
-                         'id'      => 1,
-                         'version' => 3,
-                     ]
+                'id'      => 1,
+                'version' => 3,
+            ]
         );
 
         $this->assertDatabaseHas(
@@ -585,7 +585,7 @@ class VersionableTest extends TestCase
 
         $role = factory(Role::class)->create(
             [
-                'name' => 'test-role'
+                'name' => 'test-role',
             ]
         );
 
