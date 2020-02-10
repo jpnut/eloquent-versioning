@@ -18,7 +18,7 @@ By default, queries are scoped to merge records in the parent table with the lat
 This package can be installed through Composer.
 
 ```shell script
-composer require jpnut/eloquent-versionable
+composer require jpnut/eloquent-versioning
 ```
 
 ## Usage
