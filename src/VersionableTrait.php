@@ -470,10 +470,12 @@ trait VersionableTrait
         $this->save();
 
         $this->insertVersion(
-            $this->getVersionAttributes(
+            $attributes = $this->getVersionAttributes(
                 $this->version($version)->getAttributes()
             )
         );
+
+        $this->fill($attributes);
 
         return $this;
     }

@@ -508,6 +508,7 @@ class VersionableTest extends TestCase
         $model->changeVersion(1);
 
         $this->assertEquals(3, $model->version);
+        $this->assertEquals('Foo', $model->city);
 
         $this->assertDatabaseHas(
             'dummies', [
